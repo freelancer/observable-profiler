@@ -2,21 +2,22 @@
 import { Observable, Subject, VirtualTimeScheduler, Subscriber } from 'rxjs';
 import { delay, takeUntil, shareReplay } from 'rxjs/operators';
 
-import { setup, track, getSubscribers } from './index';
+import { SubscriptionTracking } from './index';
 
 describe('tracks subscriptions', () => {
+    const tracking = new SubscriptionTracking();
     beforeAll(() => {
-        setup(Observable);
+        tracking.setup(Observable);
     });
 
     beforeEach(() => {
-        track();
-        expect(getSubscribers().current().length).toBe(0);
+        tracking.track();
+        expect(tracking.getSubscribers().current().length).toBe(0);
     });
 
     afterEach(() => {
-        const s = getSubscribers().current();
-        track(false);
+        const s = tracking.getSubscribers().current();
+        tracking.track(false);
         expect(s.length).toBe(0);
     });
 
@@ -24,7 +25,7 @@ describe('tracks subscriptions', () => {
         it('unsubscribes imperatively', () => {
             const o = new Observable();
             const s = o.subscribe();
-            expect(getSubscribers().current().length).toBe(1);
+            expect(tracking.getSubscribers().current().length).toBe(1);
             s.unsubscribe();
         });
 
@@ -32,7 +33,7 @@ describe('tracks subscriptions', () => {
             let subscriber: Subscriber<any>;
             const o = new Observable(s => { subscriber = s; });
             o.subscribe();
-            expect(getSubscribers().current().length).toBe(1);
+            expect(tracking.getSubscribers().current().length).toBe(1);
             subscriber!.complete();
         });
 
@@ -40,7 +41,7 @@ describe('tracks subscriptions', () => {
             const end = new Subject();
             const o = new Observable().pipe(takeUntil(end));
             o.subscribe();
-            expect(getSubscribers().current().length).toBe(3);
+            expect(tracking.getSubscribers().current().length).toBe(3);
             end.next();
         });
     });
@@ -51,7 +52,7 @@ describe('tracks subscriptions', () => {
             const end = new Subject();
             const o = new Subject().pipe(takeUntil(end), delay(2000, scheduler));
             o.subscribe();
-            expect(getSubscribers().current().length).toBe(4);
+            expect(tracking.getSubscribers().current().length).toBe(4);
             end.next();
             scheduler.flush();
         });
@@ -59,7 +60,7 @@ describe('tracks subscriptions', () => {
         it('with shareReplay', () => {
             const o = new Subject().pipe(shareReplay({ bufferSize: 1, refCount: true }));
             const s = o.subscribe();
-            expect(getSubscribers().current().length).toBe(3);
+            expect(tracking.getSubscribers().current().length).toBe(3);
             s.unsubscribe();
         });
     });
