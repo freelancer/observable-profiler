@@ -1,6 +1,6 @@
 {
-  "name": "observable-profiler",
-  "version": "0.1.1",
+  "name": "@freelancercom/observable-profiler",
+  "version": "0.1.1-fork.1",
   "description": "Tracks new & disposed Observable subscriptions",
   "main": "./dist/index.js",
   "module": "./dist/_esm5/index.js",
